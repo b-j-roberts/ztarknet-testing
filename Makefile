@@ -86,3 +86,19 @@ accounts: ## Show predeployed devnet accounts from logs
 up: start ## Alias for start
 down: stop ## Alias for stop
 ps: status ## Alias for status
+
+# Counter Contract Operations (using js-scripts)
+counter-declare: ## Declare the counter contract
+	@cd onchain && scarb build
+	@cd js-scripts && npm run declare -- \
+		--sierra ../onchain/target/dev/onchain_Counter.contract_class.json \
+		--casm ../onchain/target/dev/onchain_Counter.compiled_contract_class.json
+
+counter-deploy: ## Deploy the counter contract (requires COUNTER_CLASS_HASH in .env)
+	@cd js-scripts && npm run deploy -- --class-hash $${COUNTER_CLASS_HASH}
+
+counter-read: ## Read the current counter value
+	@cd js-scripts && npm run read -- --function get_counter
+
+counter-increment: ## Increment the counter
+	@cd js-scripts && npm run invoke -- --function increment

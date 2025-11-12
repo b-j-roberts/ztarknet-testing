@@ -1,0 +1,26 @@
+{
+  "name": "ztarknet-scripts",
+  "version": "1.0.0",
+  "description": "TypeScript scripts for interacting with Ztarknet (Madara) node",
+  "type": "module",
+  "scripts": {
+    "transfer": "tsx src/transfer.ts",
+    "balance": "tsx src/getBalance.ts",
+    "declare": "tsx src/declareContract.ts",
+    "deploy": "tsx src/deployContract.ts",
+    "read": "tsx src/readContract.ts",
+    "invoke": "tsx src/invokeContract.ts"
+  },
+  "keywords": ["starknet", "madara", "ztarknet"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "starknet": "^6.20.3",
+    "dotenv": "^16.4.7"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}
