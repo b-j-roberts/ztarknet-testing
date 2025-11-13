@@ -5,6 +5,7 @@
 ```
 cp .env.karnot .env
 # Set ACCOUNT_ADDRESS & ACCOUNT_PRIVATE_KEY
+source .env
 
 cd js-scripts
 npm install
