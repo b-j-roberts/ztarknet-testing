@@ -10,13 +10,14 @@
     "deploy": "tsx src/deployContract.ts",
     "read": "tsx src/readContract.ts",
     "invoke": "tsx src/invokeContract.ts",
-    "check-account": "tsx src/checkAccount.ts"
+    "check-account": "tsx src/checkAccount.ts",
+    "karnot-transfer": "tsx src/karnot-transfer.ts"
   },
   "keywords": ["starknet", "madara", "ztarknet"],
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "starknet": "^6.20.3",
+    "starknet": "^8.7.0",
     "dotenv": "^16.4.7"
   },
   "devDependencies": {
