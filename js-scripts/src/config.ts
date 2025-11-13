@@ -39,7 +39,10 @@ export function loadConfig(): Config {
 }
 
 export function createProvider(config: Config): RpcProvider {
-  return new RpcProvider({ nodeUrl: config.rpcUrl });
+  return new RpcProvider({
+    nodeUrl: config.rpcUrl,
+    blockIdentifier: "latest"
+  });
 }
 
 export function createAccount(

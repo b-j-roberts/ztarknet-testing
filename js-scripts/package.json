@@ -9,7 +9,8 @@
     "declare": "tsx src/declareContract.ts",
     "deploy": "tsx src/deployContract.ts",
     "read": "tsx src/readContract.ts",
-    "invoke": "tsx src/invokeContract.ts"
+    "invoke": "tsx src/invokeContract.ts",
+    "check-account": "tsx src/checkAccount.ts"
   },
   "keywords": ["starknet", "madara", "ztarknet"],
   "author": "",

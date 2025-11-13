@@ -54,14 +54,33 @@ async function main() {
 
     console.log("Declaring contract...");
 
-    // Manually set fees to bypass estimation issues with Madara
-    const declareResponse = await account.declareIfNot(
+    // Get current nonce
+    const nonce = await account.getNonce();
+    console.log("Current nonce:", nonce);
+
+    // Use V3 transactions with resource bounds
+    const declareResponse = await account.declare(
       {
         contract: sierra,
         casm: casm,
       },
       {
-        maxFee: "1000000000000000", // 0.001 ETH max fee
+        version: 3,
+        nonce: nonce,
+        resourceBounds: {
+          l1_gas: {
+            max_amount: "0x1000",
+            max_price_per_unit: "0x5f5e100"
+          },
+          l2_gas: {
+            max_amount: "0x100000",
+            max_price_per_unit: "0x5f5e100"
+          },
+          l1_data_gas: {
+            max_amount: "0x1000",
+            max_price_per_unit: "0x5f5e100"
+          }
+        }
       }
     );
 
