@@ -2,10 +2,10 @@
 
 import { readFileSync } from "fs";
 import { resolve } from "path";
+import { Account } from "starknet";
 import {
   loadConfig,
   createProvider,
-  createAccount,
   parseCommandLineArgs,
 } from "./config.js";
 
@@ -36,7 +36,14 @@ async function main() {
 
   const config = loadConfig();
   const provider = createProvider(config);
-  const account = createAccount(provider, config);
+
+  const account = new Account({
+    provider,
+    address: config.accountAddress,
+    signer: config.accountPrivateKey,
+    cairoVersion: '1',
+    transactionVersion: '0x3',
+  });
 
   const sierraPath = resolve(process.cwd(), args.sierra);
   const casmPath = resolve(process.cwd(), args.casm);
@@ -54,33 +61,22 @@ async function main() {
 
     console.log("Declaring contract...");
 
-    // Get current nonce
-    const nonce = await account.getNonce();
-    console.log("Current nonce:", nonce);
+    // Get nonce explicitly with pre_confirmed block identifier
+    const nonce = await provider.getNonceForAddress(
+      account.address,
+      'pre_confirmed'
+    );
+    console.log("Using nonce:", nonce);
 
-    // Use V3 transactions with resource bounds
     const declareResponse = await account.declare(
       {
         contract: sierra,
         casm: casm,
       },
       {
-        version: 3,
-        nonce: nonce,
-        resourceBounds: {
-          l1_gas: {
-            max_amount: "0x1000",
-            max_price_per_unit: "0x5f5e100"
-          },
-          l2_gas: {
-            max_amount: "0x100000",
-            max_price_per_unit: "0x5f5e100"
-          },
-          l1_data_gas: {
-            max_amount: "0x1000",
-            max_price_per_unit: "0x5f5e100"
-          }
-        }
+        blockIdentifier: 'pre_confirmed',
+        nonce,
+        skipValidate: true,
       }
     );
 
@@ -88,7 +84,9 @@ async function main() {
     console.log("Class hash:      ", declareResponse.class_hash);
 
     console.log("\nWaiting for transaction confirmation...");
-    await provider.waitForTransaction(declareResponse.transaction_hash);
+    await provider.waitForTransaction(declareResponse.transaction_hash, {
+      retryInterval: 100,
+    });
 
     console.log("\n✓ Contract declared successfully!");
     console.log("\nAdd this to your .env file:");

@@ -1,10 +1,9 @@
 #!/usr/bin/env tsx
 
-import { CallData } from "starknet";
+import { CallData, Account } from "starknet";
 import {
   loadConfig,
   createProvider,
-  createAccount,
   parseCommandLineArgs,
 } from "./config.js";
 
@@ -38,7 +37,14 @@ async function main() {
 
   const config = loadConfig();
   const provider = createProvider(config);
-  const account = createAccount(provider, config);
+
+  const account = new Account({
+    provider,
+    address: config.accountAddress,
+    signer: config.accountPrivateKey,
+    cairoVersion: '1',
+    transactionVersion: '0x3',
+  });
 
   const contractAddress =
     args.contract || config.counterContractAddress || "";
@@ -64,33 +70,30 @@ async function main() {
   try {
     console.log("Invoking function...");
 
+    // Get nonce explicitly with pre_confirmed block identifier
+    const nonce = await provider.getNonceForAddress(
+      account.address,
+      'pre_confirmed'
+    );
+    console.log("Using nonce:", nonce);
+
     const invokeCall = {
       contractAddress: contractAddress,
       entrypoint: functionName,
       calldata: calldata.length > 0 ? CallData.compile(calldata) : [],
     };
 
-    const invokeResponse = await account.execute(invokeCall, undefined, {
-      version: 3,
-      resourceBounds: {
-        l1_gas: {
-          max_amount: "0x1000",
-          max_price_per_unit: "0x5f5e100"
-        },
-        l2_gas: {
-          max_amount: "0x100000",
-          max_price_per_unit: "0x5f5e100"
-        },
-        l1_data_gas: {
-          max_amount: "0x1000",
-          max_price_per_unit: "0x5f5e100"
-        }
-      }
+    const invokeResponse = await account.execute(invokeCall, {
+      blockIdentifier: 'pre_confirmed',
+      nonce,
+      skipValidate: true,
     });
     console.log("Transaction hash:", invokeResponse.transaction_hash);
 
     console.log("\nWaiting for transaction confirmation...");
-    await provider.waitForTransaction(invokeResponse.transaction_hash);
+    await provider.waitForTransaction(invokeResponse.transaction_hash, {
+      retryInterval: 100,
+    });
 
     console.log("\n✓ Function invoked successfully!");
   } catch (error) {

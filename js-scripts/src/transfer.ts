@@ -39,7 +39,6 @@ async function main() {
   const fromAddress = args["from-address"] || config.accountAddress;
   const fromKey = args["from-key"] || config.accountPrivateKey;
 
-  // Create account with explicit transactionVersion and cairoVersion for Karnot compatibility
   const account = new Account({
     provider,
     address: fromAddress,
@@ -62,7 +61,7 @@ async function main() {
   try {
     console.log("Executing transfer...");
 
-    // Get nonce explicitly with pre_confirmed block identifier for Karnot
+    // Get nonce explicitly with pre_confirmed block identifier
     const nonce = await provider.getNonceForAddress(
       account.address,
       'pre_confirmed'
@@ -78,7 +77,6 @@ async function main() {
       }),
     };
 
-    // Execute with Karnot-compatible options
     const transferResponse = await account.execute(transferCall, {
       blockIdentifier: 'pre_confirmed',
       nonce,

@@ -82,12 +82,11 @@ async function main() {
   try {
     // For counter contract, use the ABI. For generic contracts, try without ABI
     let contract: Contract;
-    if (functionName === "get_counter" || functionName === "increment") {
-      contract = new Contract(COUNTER_ABI, contractAddress, provider);
-    } else {
-      // Generic contract call without ABI
-      contract = new Contract([], contractAddress, provider);
-    }
+    contract = new Contract({
+      abi: COUNTER_ABI,
+      address: contractAddress,
+      providerOrAccount: provider,
+    });
 
     console.log("Calling function...");
 

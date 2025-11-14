@@ -1,9 +1,9 @@
 #!/usr/bin/env tsx
 
+import { Account, legacyDeployer } from "starknet";
 import {
   loadConfig,
   createProvider,
-  createAccount,
   parseCommandLineArgs,
 } from "./config.js";
 
@@ -34,7 +34,15 @@ async function main() {
 
   const config = loadConfig();
   const provider = createProvider(config);
-  const account = createAccount(provider, config);
+
+  const account = new Account({
+    provider,
+    address: config.accountAddress,
+    signer: config.accountPrivateKey,
+    cairoVersion: '1',
+    transactionVersion: '0x3',
+    deployer: legacyDeployer,  // Use UDC V1 since UDC V2 isn't on Ztarknet yet
+  });
 
   const classHash = args["class-hash"];
   const calldataStr = args.calldata || "";
@@ -50,27 +58,23 @@ async function main() {
 
   try {
     console.log("Deploying contract...");
+
+    // Get nonce explicitly with pre_confirmed block identifier
+    const nonce = await provider.getNonceForAddress(
+      account.address,
+      'pre_confirmed'
+    );
+    console.log("Using nonce:", nonce);
+
     const deployResult = await account.deployContract(
       {
         classHash: classHash,
         constructorCalldata: constructorCalldata,
       },
       {
-        version: 3,
-        resourceBounds: {
-          l1_gas: {
-            max_amount: "0x1000",
-            max_price_per_unit: "0x5f5e100"
-          },
-          l2_gas: {
-            max_amount: "0x100000",
-            max_price_per_unit: "0x5f5e100"
-          },
-          l1_data_gas: {
-            max_amount: "0x1000",
-            max_price_per_unit: "0x5f5e100"
-          }
-        }
+        blockIdentifier: 'pre_confirmed',
+        nonce,
+        skipValidate: true,
       }
     );
 
@@ -78,7 +82,9 @@ async function main() {
     console.log("Contract address:  ", deployResult.contract_address);
 
     console.log("\nWaiting for transaction confirmation...");
-    await provider.waitForTransaction(deployResult.transaction_hash);
+    await provider.waitForTransaction(deployResult.transaction_hash, {
+      retryInterval: 100,
+    });
 
     console.log("\n✓ Contract deployed successfully!");
     console.log("\nAdd this to your .env file:");
