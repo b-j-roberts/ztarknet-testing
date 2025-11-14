@@ -2,10 +2,10 @@
 
 import { readFileSync } from "fs";
 import { resolve } from "path";
-import { Account } from "starknet";
 import {
   loadConfig,
   createProvider,
+  createAccount,
   parseCommandLineArgs,
 } from "./config.js";
 
@@ -37,13 +37,7 @@ async function main() {
   const config = loadConfig();
   const provider = createProvider(config);
 
-  const account = new Account({
-    provider,
-    address: config.accountAddress,
-    signer: config.accountPrivateKey,
-    cairoVersion: '1',
-    transactionVersion: '0x3',
-  });
+  const account = createAccount(provider, config);
 
   const sierraPath = resolve(process.cwd(), args.sierra);
   const casmPath = resolve(process.cwd(), args.casm);

@@ -1,9 +1,10 @@
 #!/usr/bin/env tsx
 
-import { CallData, Account } from "starknet";
+import { CallData } from "starknet";
 import {
   loadConfig,
   createProvider,
+  createAccount,
   parseCommandLineArgs,
 } from "./config.js";
 
@@ -38,13 +39,7 @@ async function main() {
   const config = loadConfig();
   const provider = createProvider(config);
 
-  const account = new Account({
-    provider,
-    address: config.accountAddress,
-    signer: config.accountPrivateKey,
-    cairoVersion: '1',
-    transactionVersion: '0x3',
-  });
+  const account = createAccount(provider, config);
 
   const contractAddress =
     args.contract || config.counterContractAddress || "";

@@ -1,9 +1,10 @@
 #!/usr/bin/env tsx
 
-import { CallData, cairo, Account } from "starknet";
+import { CallData, cairo } from "starknet";
 import {
   loadConfig,
   createProvider,
+  createAccount,
   parseCommandLineArgs,
 } from "./config.js";
 
@@ -36,15 +37,9 @@ async function main() {
   const provider = createProvider(config);
 
   // Allow override of sender account via CLI
-  const fromAddress = args["from-address"] || config.accountAddress;
-  const fromKey = args["from-key"] || config.accountPrivateKey;
-
-  const account = new Account({
-    provider,
-    address: fromAddress,
-    signer: fromKey,
-    cairoVersion: '1',
-    transactionVersion: '0x3',
+  const account = createAccount(provider, config, {
+    address: args["from-address"],
+    privateKey: args["from-key"],
   });
 
   const recipient = args.to;

@@ -1,4 +1,4 @@
-import { Account, RpcProvider } from "starknet";
+import { Account, RpcProvider, legacyDeployer } from "starknet";
 import dotenv from "dotenv";
 import { resolve, dirname } from "path";
 import { fileURLToPath } from "url";
@@ -38,6 +38,12 @@ export function loadConfig(): Config {
   return config;
 }
 
+export interface AccountOptions {
+  address?: string;
+  privateKey?: string;
+  useLegacyDeployer?: boolean;
+}
+
 export function createProvider(config: Config): RpcProvider {
   return new RpcProvider({
     nodeUrl: config.rpcUrl,
@@ -47,14 +53,31 @@ export function createProvider(config: Config): RpcProvider {
 
 export function createAccount(
   provider: RpcProvider,
-  config: Config
+  config: Config,
+  options: AccountOptions = {}
 ): Account {
-  if (!config.accountAddress || !config.accountPrivateKey) {
+  const address = options.address || config.accountAddress;
+  const privateKey = options.privateKey || config.accountPrivateKey;
+
+  if (!address || !privateKey) {
     throw new Error(
-      "Account address and private key must be set in .env file"
+      "Account address and private key must be set in .env file or provided as options"
     );
   }
-  return new Account(provider, config.accountAddress, config.accountPrivateKey);
+
+  const accountConfig: any = {
+    provider,
+    address,
+    signer: privateKey,
+    cairoVersion: '1',
+    transactionVersion: '0x3',
+  };
+
+  if (options.useLegacyDeployer) {
+    accountConfig.deployer = legacyDeployer;
+  }
+
+  return new Account(accountConfig);
 }
 
 export function parseCommandLineArgs(): { [key: string]: string } {

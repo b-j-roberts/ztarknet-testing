@@ -1,9 +1,9 @@
 #!/usr/bin/env tsx
 
-import { Account, legacyDeployer } from "starknet";
 import {
   loadConfig,
   createProvider,
+  createAccount,
   parseCommandLineArgs,
 } from "./config.js";
 
@@ -35,14 +35,8 @@ async function main() {
   const config = loadConfig();
   const provider = createProvider(config);
 
-  const account = new Account({
-    provider,
-    address: config.accountAddress,
-    signer: config.accountPrivateKey,
-    cairoVersion: '1',
-    transactionVersion: '0x3',
-    deployer: legacyDeployer,  // Use UDC V1 since UDC V2 isn't on Ztarknet yet
-  });
+  // Use UDC V1 since UDC V2 isn't on Ztarknet yet
+  const account = createAccount(provider, config, { useLegacyDeployer: true });
 
   const classHash = args["class-hash"];
   const calldataStr = args.calldata || "";
