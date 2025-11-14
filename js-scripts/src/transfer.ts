@@ -1,10 +1,9 @@
 #!/usr/bin/env tsx
 
-import { CallData, cairo } from "starknet";
+import { CallData, cairo, Account } from "starknet";
 import {
   loadConfig,
   createProvider,
-  createAccount,
   parseCommandLineArgs,
 } from "./config.js";
 
@@ -39,10 +38,14 @@ async function main() {
   // Allow override of sender account via CLI
   const fromAddress = args["from-address"] || config.accountAddress;
   const fromKey = args["from-key"] || config.accountPrivateKey;
-  const account = createAccount(provider, {
-    ...config,
-    accountAddress: fromAddress,
-    accountPrivateKey: fromKey,
+
+  // Create account with explicit transactionVersion and cairoVersion for Karnot compatibility
+  const account = new Account({
+    provider,
+    address: fromAddress,
+    signer: fromKey,
+    cairoVersion: '1',
+    transactionVersion: '0x3',
   });
 
   const recipient = args.to;
@@ -59,6 +62,13 @@ async function main() {
   try {
     console.log("Executing transfer...");
 
+    // Get nonce explicitly with pre_confirmed block identifier for Karnot
+    const nonce = await provider.getNonceForAddress(
+      account.address,
+      'pre_confirmed'
+    );
+    console.log("Using nonce:", nonce);
+
     const transferCall = {
       contractAddress: tokenAddress,
       entrypoint: "transfer",
@@ -68,27 +78,18 @@ async function main() {
       }),
     };
 
-    const transferResponse = await account.execute(transferCall, undefined, {
-      version: 3,
-      resourceBounds: {
-        l1_gas: {
-          max_amount: "0x1000",
-          max_price_per_unit: "0x5f5e100"
-        },
-        l2_gas: {
-          max_amount: "0x100000",
-          max_price_per_unit: "0x5f5e100"
-        },
-        l1_data_gas: {
-          max_amount: "0x1000",
-          max_price_per_unit: "0x5f5e100"
-        }
-      }
+    // Execute with Karnot-compatible options
+    const transferResponse = await account.execute(transferCall, {
+      blockIdentifier: 'pre_confirmed',
+      nonce,
+      skipValidate: true,
     });
     console.log("Transaction hash:", transferResponse.transaction_hash);
 
     console.log("Waiting for transaction confirmation...");
-    await provider.waitForTransaction(transferResponse.transaction_hash);
+    await provider.waitForTransaction(transferResponse.transaction_hash, {
+      retryInterval: 100,
+    });
 
     console.log("✓ Transfer successful!");
   } catch (error) {
