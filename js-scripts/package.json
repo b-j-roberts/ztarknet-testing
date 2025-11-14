@@ -5,12 +5,14 @@
   "type": "module",
   "scripts": {
     "transfer": "tsx src/transfer.ts",
+    "mint": "tsx src/mint.ts",
     "balance": "tsx src/getBalance.ts",
     "declare": "tsx src/declareContract.ts",
     "deploy": "tsx src/deployContract.ts",
     "read": "tsx src/readContract.ts",
     "invoke": "tsx src/invokeContract.ts",
     "check-account": "tsx src/checkAccount.ts",
+    "create-account": "tsx src/createAccount.ts",
     "karnot-transfer": "tsx src/karnot-transfer.ts"
   },
   "keywords": ["starknet", "madara", "ztarknet"],

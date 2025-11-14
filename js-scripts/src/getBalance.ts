@@ -94,7 +94,11 @@ async function main() {
   console.log("");
 
   try {
-    const tokenContract = new Contract(ERC20_ABI, tokenAddress, provider);
+    const tokenContract = new Contract({
+      abi: ERC20_ABI,
+      address: tokenAddress,
+      providerOrAccount: provider,
+    });
 
     // Get balance
     const balance = await tokenContract.balanceOf(accountAddress);

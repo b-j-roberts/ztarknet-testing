@@ -18,6 +18,7 @@ export interface Config {
   feeToken: string;
   strkToken: string;
   ethToken: string;
+  accountClassHash: string;
   counterContractAddress?: string;
   counterClassHash?: string;
 }
@@ -31,6 +32,7 @@ export function loadConfig(): Config {
     feeToken: process.env.FEE_TOKEN || "",
     strkToken: process.env.STRK_TOKEN || "",
     ethToken: process.env.ETH_TOKEN || "",
+    accountClassHash: process.env.ZTARKNET_ACCOUNT_CLASS_HASH || "",
     counterContractAddress: process.env.COUNTER_CONTRACT_ADDRESS,
     counterClassHash: process.env.COUNTER_CLASS_HASH,
   };
